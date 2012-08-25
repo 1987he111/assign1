@@ -1,19 +1,45 @@
 <?php
-//when submit the table form to this page itself, then will start session and register session variable and
-//transfer to another page
-if (isset($_SERVER['HTTP_REFERER']) && preg_match('/search\.php/', $_SERVER['HTTP_REFERER'])) {
+$actionValue = "answer.php";
+
+//if submit comes from session_form then conduct start session or stop session
+if (isset($_SERVER['HTTP_REFERER'])
+        && preg_match('/search\.php/', $_SERVER['HTTP_REFERER']) && isset($_GET['startSession'])) {
+    //if start session then submit main form to self page
+    $actionValue = "search.php";
+    echo "<h2>Session Start: the main search form will be submitted to self then start a session, you will only view the wine name</h2>";
+}
+//cancer session 
+if (isset($_SERVER['HTTP_REFERER'])
+        && preg_match('/search\.php/', $_SERVER['HTTP_REFERER']) && isset($_GET['cancerSession'])) {
+    if (isset($_GET)) {
+        $_GET = array();
+    }
+    if (isset($_SESSION)) {
+        $_SESSION = array();
+        session_destroy();
+    }
+    $actionValue = "answer.php";
+    echo "<h2>Session Cancered: the main search form will be submitted directly to answer.php</h2>";
+}
+
+//if submit the main form to self then procede this
+if (isset($_SERVER['HTTP_REFERER'])
+        && preg_match('/search\.php/', $_SERVER['HTTP_REFERER']) && isset($_GET['submit'])) {
+    //if submit to self then start session
     session_start();
     //get initial params from search.php
     $_SESSION['wineName'] = trim($_GET['wineName']);
-    $_SESSION['wineryName']  = trim($_GET['wineryName']);
-    $_SESSION['regionName']  = trim($_GET['regionName']);
-    $_SESSION['grapeVariety']  = trim($_GET['grapeVariety']);
-    $_SESSION['yearMin']  = (int) trim($_GET['yearMin']);
-    $_SESSION['yearMax']  = (int) trim($_GET['yearMax']);
-    $_SESSION['minWineNumInStock']  = (float) trim($_GET['minWineNumInStock']);
-    $_SESSION['minWineNumOrdered']  = (float) trim($_GET['minWineNumOrdered']);
-    $_SESSION['costMin']  = (float) trim($_GET['costMin']);
-    $_SESSION['costMax']  = (float) trim($_GET['costMax']);
+    $_SESSION['wineryName'] = trim($_GET['wineryName']);
+    $_SESSION['regionName'] = trim($_GET['regionName']);
+    $_SESSION['grapeVariety'] = trim($_GET['grapeVariety']);
+    $_SESSION['yearMin'] = (int) trim($_GET['yearMin']);
+    $_SESSION['yearMax'] = (int) trim($_GET['yearMax']);
+    $_SESSION['minWineNumInStock'] = (float) trim($_GET['minWineNumInStock']);
+    $_SESSION['minWineNumOrdered'] = (float) trim($_GET['minWineNumOrdered']);
+    $_SESSION['costMin'] = (float) trim($_GET['costMin']);
+    $_SESSION['costMax'] = (float) trim($_GET['costMax']);
+    $_SESSION['form'] = "search_form";
+    //echo "<h2>".$_SESSION['regionName']."</h2>";
     header("Location: answer.php");
 }
 
@@ -113,7 +139,7 @@ function createDropList($tableName, $attributeName, $pulldownName) {
     <body bgcolor="white">
 
         <h1>Wine Search Page</h1>
-        <form name="search_form" action="search.php" method="GET" onSubmit="return validate(this)">
+        <form name="search_form" action="<?php echo $actionValue ?>" method="GET" onSubmit="return validate(this)">
             <table>
                 <tr><td>Wine Name: </td><td colspan="2"><input type="text" id="wineName" name="wineName" /></td></tr>
                 <tr><td>Winery Name: </td><td colspan="2"><input type="text" id="wineryName" name="wineryName" /></td></tr>
@@ -143,11 +169,16 @@ function createDropList($tableName, $attributeName, $pulldownName) {
                     <td><input type="text" id="costMin" name="costMin" />(min) </td>
                     <td><input type="text" id="costMax" name="costMax" />(max)</td></tr>
                 <tr>
-                    <td><input type="submit" name="submit" id="submit" value="search"></td>
-                    <td><input type="reset" value="reset"></td>
+                    <td><input type="submit" name="submit" id="submit" value="search" /></td>
+                    <td><input type="reset" value="reset" /></td>
                     <td></td>
                 </tr>
             </table>
+        </form>
+        <!-- define a button to start a session -->
+        <form name="startSessionForm" action="search.php" method="GET">
+            <input type="submit" name="startSession" id ="startSession" value="Start Session" />
+            <input type="submit" name="cancerSession" id ="cancerSession" value="Cancer Session" />
         </form>
         <br>
         <?php
