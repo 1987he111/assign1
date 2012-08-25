@@ -8,7 +8,7 @@
 /**
  * Hostname and port mysql is running on (can't use localhost)
  */
-define('DB_HOST', 'yallara.cs.rmit.edu.au:54403'); 
+define('DB_HOST', 'yallara.cs.rmit.edu.au:54403'); //yallara.cs.rmit.edu.au:54403
 
 define('DB_NAME', 'winestore');
 

@@ -1,37 +1,38 @@
 <?php
-//echo "<h1>" . $_SERVER['PHP_SELF'] . "</h1>";
-//check if the page link to answer.php is from search.php
-if ($_GET['submit'] != "search") {
-    header("Location: search.php");
-    exit;
-}
-
 require_once('db.php');
+session_start();
 
-//Open the database connection and select database winestore
-if (!($connection = @mysql_connect(DB_HOST, DB_USER, DB_PW))) {
-    die("Could not connect");
+//if session doesn't exists then return to search.php
+if(!isset($_SESSION['wineName'])){
+    header("Location: search.php");
 }
-if (!(@ mysql_select_db(DB_NAME, $connection))) {
-    showerror();
+
+//create PDO object to connect database
+try {
+    $db = new PDO(
+                    "mysql:host=" . DB_HOST . ";port=" . DB_PORT . ";dbname=" . DB_NAME,
+                    DB_USER, DB_PW
+    );
+} catch (PDOException $e) {
+    die($e->getMessage());
 }
 
 //get initial params from search.php
-$wineName = trim($_GET['wineName']);
-$wineryName = trim($_GET['wineryName']);
-$regionName = trim($_GET['regionName']);
-$grapeVariety = trim($_GET['grapeVariety']);
-$yearMin = (int) trim($_GET['yearMin']);
-$yearMax = (int) trim($_GET['yearMax']);
-$minWineNumInStock = (float) trim($_GET['minWineNumInStock']);
-$minWineNumOrdered = (float) trim($_GET['minWineNumOrdered']);
-$costMin = (float) trim($_GET['costMin']);
-$costMax = (float) trim($_GET['costMax']);
+$wineName = $_SESSION['wineName'];
+$wineryName = $_SESSION['wineryName'];
+$regionName = $_SESSION['regionName'];
+$grapeVariety = $_SESSION['grapeVariety'];
+$yearMin = $_SESSION['yearMin'];
+$yearMax = $_SESSION['yearMax'];
+$minWineNumInStock = $_SESSION['minWineNumInStock'];
+$minWineNumOrdered = $_SESSION['minWineNumOrdered'];
+$costMin = $_SESSION['costMin'];
+$costMax = $_SESSION['costMax'];
 
 //create the query
 $query = "select wine.wine_name, wine.year, new_grape.variety, winery.winery_name, region.region_name,";
 $query .= " inventory.cost, inventory.on_hand, new_items.total_sold_qty, ";
-$query .= " new_items.total_sold_price ";
+$query .= " new_items.total_sold_price-(new_items.total_sold_qty*inventory.cost) ";
 $query .= " from wine, winery, region, inventory, ";
 $query .= " (SELECT wine_id, sum(qty) as total_sold_qty, sum(qty*price) as total_sold_price FROM items group by wine_id) as new_items, ";
 $query .= " (SELECT wine_variety.wine_id as wine_id, group_concat(grape_variety.variety) as variety FROM wine_variety, grape_variety ";
@@ -70,15 +71,12 @@ if ($minWineNumOrdered != 0) {
     $query .= " and new_items.total_qty >= " . $minWineNumOrdered;
 }
 
-
 //run query
 $query .= " order by wine.wine_name, year;";
-if (!($result = @ mysql_query($query, $connection)))
-    showerror();
-
-if (mysql_num_rows($result) == 0) {
-    mysql_close($connection);
-    die("<h1>sorry, no wine found!</h1>");
+try {
+    $result = $db->query($query);
+} catch (PDOException $e) {
+    echo $e->getMessage();
 }
 ?>
 <!DOCTYPE HTML PUBLIC
@@ -98,10 +96,9 @@ if (mysql_num_rows($result) == 0) {
             </tr>
             <?php
             $count = 0;
-
-            while ($row = @ mysql_fetch_array($result)) {
+            foreach ($result as $row) {
                 echo "<tr>";
-                for ($i = 0; $i < mysql_num_fields($result); $i++) {
+                for ($i = 0; $i < count($row); $i++) {
                     echo "<td>" . $row[$i] . "</td>";
                 }
                 echo "</tr>";
@@ -110,8 +107,14 @@ if (mysql_num_rows($result) == 0) {
             ?>
         </table>
         <?php
+        if ($count == 0) {
+            $db = null;
+            die("sorry, no wine found!");
+        }
         echo "<h1>" . $count . "</h1>";
-        mysql_close($connection);
+        $db = null;
+        $_SESSION = array();
+        session_destroy();
         ?>
     </body>
 </html>
