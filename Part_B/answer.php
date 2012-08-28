@@ -31,7 +31,7 @@ $costMax = (float) trim($_GET['costMax']);
 //create the query
 $query = "select wine.wine_name, wine.year, new_grape.variety, winery.winery_name, region.region_name,";
 $query .= " inventory.cost, inventory.on_hand, new_items.total_sold_qty, ";
-$query .= " new_items.total_sold_price-(new_items.total_sold_qty*inventory.cost) ";
+$query .= " new_items.total_sold_price ";
 $query .= " from wine, winery, region, inventory, ";
 $query .= " (SELECT wine_id, sum(qty) as total_sold_qty, sum(qty*price) as total_sold_price FROM items group by wine_id) as new_items, ";
 $query .= " (SELECT wine_variety.wine_id as wine_id, group_concat(grape_variety.variety) as variety FROM wine_variety, grape_variety ";
