@@ -67,7 +67,7 @@
                 <tr><td>Year Range: </td>
                     <td><{dropList tableName="wine" attributeName="year" 
                                 pulldownName="yearMin"}>(min) </td>
-                    <td><{dropList connection=$connection tableName="wine" attributeName="year" 
+                    <td><{dropList tableName="wine" attributeName="year" 
                                 pulldownName="yearMax"}>(max)</td>
                 <tr><td>MinWineNumberInStock: </td>
                     <td colspan="2"><input type="text" id="minWineNumInStock" name="minWineNumInStock" /></td></tr>
